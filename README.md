@@ -1,1 +1,1 @@
-# plugin-fastqc
+# plugin-python
