@@ -1,7 +1,7 @@
 {
-  "name": "star",
+  "name": "python",
   "version": "v0.0.0-alpha",
-  "image_name": "parithera/plugin-star",
+  "image_name": "parithera/plugin-python",
   "image_version": "0.0.0",
   "depends_on": [],
   "description": "A plugin to run an R script",

@@ -1,19 +1,19 @@
 services:
-  plugin-star:
+  plugin-python:
     platform: linux/amd64
     build:
       context: ../../backend
-      dockerfile: plugins/star/.cloud/docker/Dockerfile
+      dockerfile: plugins/python/.cloud/docker/Dockerfile
       target: plugin-dev
       args:
-        - PLUGINNAME=star
-    image: parithera/star-dev:latest
+        - PLUGINNAME=python
+    image: parithera/python-dev:latest
     restart: always
     volumes:
       - ../../backend:/codeclarity
       - ../../private:/private
-      - ../../backend/plugins/star/tests/fastq:/input
-      - ../../backend/plugins/star/tests/output:/output
+      - ../../backend/plugins/python/tests/fastq:/input
+      - ../../backend/plugins/python/tests/output:/output
     depends_on:
       rabbitmq:
         condition: service_healthy

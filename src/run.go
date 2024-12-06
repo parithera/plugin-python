@@ -12,8 +12,8 @@ import (
 	exceptionManager "github.com/CodeClarityCE/utility-types/exceptions"
 	"github.com/uptrace/bun"
 
-	"github.com/parithera/plugin-star/src/types"
-	"github.com/parithera/plugin-star/src/utils/output_generator"
+	"github.com/parithera/plugin-python/src/types"
+	"github.com/parithera/plugin-python/src/utils/output_generator"
 )
 
 // Start is a function that analyzes the source code directory and generates a software bill of materials (SBOM) output.
