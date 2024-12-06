@@ -1,0 +1,22 @@
+{
+  "name": "star",
+  "version": "v0.0.0-alpha",
+  "image_name": "parithera/plugin-star",
+  "image_version": "0.0.0",
+  "depends_on": [],
+  "description": "A plugin to run an R script",
+  "config": {
+    "whitelist": {
+      "name": "whitelist",
+      "type": "string",
+      "description": "Name of the whitelist you want to use",
+      "required": true
+    },
+    "genome": {
+      "name": "genome",
+      "type": "string",
+      "description": "Name of the genome",
+      "required": false
+    }
+  }
+}

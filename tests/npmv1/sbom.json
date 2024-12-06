@@ -1,0 +1,19 @@
+{
+  "result": {
+    "image": "npmv1/a938bd03-aca3-4cbf-9a5c-9a536e97add4.png"
+  },
+  "analysis_info": {
+    "time": {
+      "analysis_start_time": "2024-10-16 15:12:26.372175 +0200 CEST",
+      "analysis_end_time": "2024-10-16 15:12:29.275903 +0200 CEST",
+      "analysis_delta_time": 2.90370925
+    },
+    "errors": [],
+    "status": "",
+    "extra": {
+      "version_seperator": "",
+      "import_path_seperator": "",
+      "lock_file_version": 0
+    }
+  }
+}

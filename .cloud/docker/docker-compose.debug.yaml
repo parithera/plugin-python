@@ -1,0 +1,8 @@
+services:
+  plugin-star:
+    # For dev we keep the golang container and install devtools
+    build:
+      target: plugin-debug
+    image: parithera/star-debug:latest
+    ports:
+      - 40000:40000

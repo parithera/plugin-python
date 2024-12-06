@@ -1,0 +1,30 @@
+services:
+  plugin-star:
+    platform: linux/amd64
+    build:
+      context: ../../backend
+      dockerfile: plugins/star/.cloud/docker/Dockerfile
+      target: plugin-dev
+      args:
+        - PLUGINNAME=star
+    image: parithera/star-dev:latest
+    restart: always
+    volumes:
+      - ../../backend:/codeclarity
+      - ../../private:/private
+      - ../../backend/plugins/star/tests/fastq:/input
+      - ../../backend/plugins/star/tests/output:/output
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      db:
+        condition: service_started
+      pg_bouncer:
+        condition: service_started
+      adminer:
+        condition: service_started
+    env_file:
+      - ../../.cloud/env/.env.dev
+
+volumes:
+  projects:
