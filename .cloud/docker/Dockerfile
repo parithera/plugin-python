@@ -10,11 +10,9 @@ ARG KIND
 ARG PLUGINNAME
 
 WORKDIR /
-RUN wget https://github.com/alexdobin/STAR/releases/download/2.7.11b/STAR_2.7.11b.zip
-RUN apt-get update && apt-get install unzip
-RUN unzip STAR_2.7.11b.zip
-RUN chmod a+x ./STAR_2.7.11b/Linux_x86_64_static/STAR
-RUN cp ./STAR_2.7.11b/Linux_x86_64_static/STAR /usr/local/bin/STAR
+RUN apt update
+RUN apt install -y git python3 python3-pip
+RUN pip3 install --no-cache --break-system-packages anndata h5py hdf5plugin igraph pandas plotly PyQt6 scipy scanpy scikit-image
 
 WORKDIR /codeclarity/${KIND}/${PLUGINNAME}
 ADD .cloud/docker/config/* /root
@@ -23,22 +21,19 @@ RUN go install github.com/air-verse/air@latest
 CMD air -c .air.toml
 
 # DEBUG IMAGE
-FROM golang:1.23.0-alpine AS plugin-debug
+FROM golang:1.23.0 AS plugin-debug
 ARG KIND
 ARG PLUGINNAME
 ENV KIND ${KIND}
 ENV PLUGINNAME ${PLUGINNAME}
 
 WORKDIR /
-RUN wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.12.1.zip
-RUN unzip fastqc_v0.12.1.zip
-RUN rm fastqc_v0.12.1.zip
-RUN ln -s /FastQC/fastqc /usr/local/bin/fastqc
+RUN apt update
+RUN apt install -y git python3 python3-pip
+RUN pip3 install --no-cache --break-system-packages anndata h5py hdf5plugin igraph pandas plotly PyQt6 scipy scanpy scikit-image
 
 WORKDIR /codeclarity/${KIND}/${PLUGINNAME}
 ADD .cloud/docker/config/* /root
-RUN apk add --no-cache git msttcorefonts-installer fontconfig openjdk21-jre perl
-RUN update-ms-fonts
 
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 ADD .cloud/docker/config/* /root

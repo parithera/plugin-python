@@ -8,6 +8,7 @@ import (
 
 	dbhelper "github.com/CodeClarityCE/utility-dbhelper/helper"
 	codeclarity "github.com/CodeClarityCE/utility-types/codeclarity_db"
+	"github.com/google/uuid"
 	plugin "github.com/parithera/plugin-python/src"
 	"github.com/stretchr/testify/assert"
 	"github.com/uptrace/bun"
@@ -27,7 +28,7 @@ func TestCreateNPMv1(t *testing.T) {
 	defer db_codeclarity.Close()
 
 	sourceCodeDir := "/Users/cedric/Documents/workspace/parithera-dev/private/20e14aae-b8ca-4fad-a351-6d747b9ab070/67e09357-aefb-44a2-a978-1c508e16eb23"
-	out := plugin.Start(sourceCodeDir, db_codeclarity)
+	out := plugin.Start(sourceCodeDir, uuid.UUID{}, db_codeclarity)
 
 	// Assert the expected values
 	assert.NotNil(t, out)

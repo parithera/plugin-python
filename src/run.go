@@ -1,15 +1,21 @@
 package js
 
 import (
+	"bufio"
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	codeclarity "github.com/CodeClarityCE/utility-types/codeclarity_db"
 	exceptionManager "github.com/CodeClarityCE/utility-types/exceptions"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 
 	"github.com/parithera/plugin-python/src/types"
@@ -18,43 +24,38 @@ import (
 
 // Start is a function that analyzes the source code directory and generates a software bill of materials (SBOM) output.
 // It returns an sbomTypes.Output struct containing the analysis results.
-func Start(sourceCodeDir string, codeclarityDB *bun.DB) types.Output {
-
-	// r_config, ok := analysis.Config["fastqc"].(map[string]interface{})
-	// if !ok {
-	// 	panic("Failed to fetch analysis config")
-	// }
-
-	// projectId := r_config["project"].(string)
-
-	return ExecuteScript(sourceCodeDir)
-
+func Start(sourceCodeDir string, analysisId uuid.UUID, codeclarityDB *bun.DB) types.Output {
+	return ExecuteScript(sourceCodeDir, analysisId)
 }
 
-func ExecuteScript(sourceCodeDir string) types.Output {
+func ExecuteScript(sourceCodeDir string, analysisId uuid.UUID) types.Output {
 	start := time.Now()
 
-	files, err := filepath.Glob(sourceCodeDir + "/*.fastq.gz")
+	scriptPath := path.Join(sourceCodeDir, "python", "script.py")
+	files, err := filepath.Glob(scriptPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if len(files) == 0 {
-		return generate_output(start, "no fastq file", codeclarity.SUCCESS, []exceptionManager.Error{})
+		return generate_output(start, "", nil, "", codeclarity.FAILURE, []exceptionManager.Error{})
 	}
-	outputPath := path.Join(sourceCodeDir, "fastqc")
+	scanpyOutputPath := path.Join(sourceCodeDir, "scanpy")
+	outputPath := path.Join(sourceCodeDir, "python")
+	dataPath := path.Join(sourceCodeDir, "data")
 	os.MkdirAll(outputPath, os.ModePerm)
+	os.MkdirAll(dataPath, os.ModePerm)
 
-	args := append([]string{"-o", outputPath, "-t", "1"}, files...)
+	args := []string{scriptPath, scanpyOutputPath, outputPath}
 
 	// Run Rscript in sourceCodeDir
-	cmd := exec.Command("fastqc", args...)
-	_, err = cmd.CombinedOutput()
+	cmd := exec.Command("python3", args...)
+	message, err := cmd.CombinedOutput()
 	if err != nil {
 		// panic(fmt.Sprintf("Failed to run Rscript: %s", err.Error()))
 		codeclarity_error := exceptionManager.Error{
 			Private: exceptionManager.ErrorContent{
-				Description: err.Error(),
+				Description: string(message),
 				Type:        exceptionManager.GENERIC_ERROR,
 			},
 			Public: exceptionManager.ErrorContent{
@@ -62,18 +63,87 @@ func ExecuteScript(sourceCodeDir string) types.Output {
 				Type:        exceptionManager.GENERIC_ERROR,
 			},
 		}
-		return generate_output(start, nil, codeclarity.FAILURE, []exceptionManager.Error{codeclarity_error})
+		return generate_output(start, "", nil, "", codeclarity.FAILURE, []exceptionManager.Error{codeclarity_error})
 	}
 
-	return generate_output(start, "done", codeclarity.SUCCESS, []exceptionManager.Error{})
+	// Move generated image inside outputPath to dataPath
+	// Rename it to $analysisId$.png
+	files, err = filepath.Glob(outputPath + "/*")
+	if err != nil {
+		log.Fatal(err)
+	}
+	image := ""
+	for _, f := range files {
+		if strings.HasSuffix(f, ".png") {
+			newName := filepath.Join(dataPath, analysisId.String()+".png")
+			os.Rename(f, newName)
+			image = analysisId.String()
+		}
+	}
+
+	// Move generated image inside outputPath to dataPath
+	// Rename it to $analysisId$.txt
+	files, err = filepath.Glob(outputPath + "/*")
+	if err != nil {
+		log.Fatal(err)
+	}
+	text := ""
+	for _, f := range files {
+		if strings.HasSuffix(f, ".txt") {
+			newName := filepath.Join(dataPath, analysisId.String()+".txt")
+			os.Rename(f, newName)
+			// Open the renamed text file and put its content in the 'text' variable
+			txtFile, err := os.Open(newName)
+			if err != nil {
+				panic(fmt.Sprintf("Failed to open text file: %s", err.Error()))
+			}
+			defer txtFile.Close()
+
+			var buffer bytes.Buffer
+			scanner := bufio.NewScanner(txtFile)
+			for scanner.Scan() {
+				buffer.WriteString(scanner.Text() + "\n")
+			}
+			text = buffer.String()
+		}
+	}
+
+	// Move generated image inside outputPath to dataPath
+	// Rename it to $analysisId$.txt
+	files, err = filepath.Glob(outputPath + "/*")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var data map[string]interface{}
+	for _, f := range files {
+		if strings.HasSuffix(f, ".json") {
+			newName := filepath.Join(dataPath, analysisId.String()+".json")
+			os.Rename(f, newName)
+			jsonFile, err := os.Open(newName)
+			if err != nil {
+				panic(fmt.Sprintf("Failed to open JSON file: %s", err.Error()))
+			}
+			defer jsonFile.Close()
+
+			decoder := json.NewDecoder(jsonFile)
+			err = decoder.Decode(&data)
+			if err != nil {
+				panic(fmt.Sprintf("Failed to decode JSON data: %s", err.Error()))
+			}
+		}
+	}
+
+	return generate_output(start, image, data, text, codeclarity.SUCCESS, []exceptionManager.Error{})
 }
 
-func generate_output(start time.Time, data any, status codeclarity.AnalysisStatus, errors []exceptionManager.Error) types.Output {
+func generate_output(start time.Time, imageName string, data any, text string, status codeclarity.AnalysisStatus, errors []exceptionManager.Error) types.Output {
 	formattedStart, formattedEnd, delta := output_generator.GetAnalysisTiming(start)
 
 	output := types.Output{
 		Result: types.Result{
-			Data: data,
+			Image: imageName,
+			Data:  data,
+			Text:  text,
 		},
 		AnalysisInfo: types.AnalysisInfo{
 			Errors: errors,
