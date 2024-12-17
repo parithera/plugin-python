@@ -3,6 +3,7 @@ package js
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -25,7 +26,39 @@ import (
 // Start is a function that analyzes the source code directory and generates a software bill of materials (SBOM) output.
 // It returns an sbomTypes.Output struct containing the analysis results.
 func Start(sourceCodeDir string, analysisId uuid.UUID, codeclarityDB *bun.DB) types.Output {
-	return ExecuteScript(sourceCodeDir, analysisId)
+	analysis := codeclarity.Analysis{
+		Id: analysisId,
+	}
+	err := codeclarityDB.NewSelect().Model(&analysis).WherePK().Scan(context.Background())
+	if err != nil {
+		panic(fmt.Sprintf("Failed to fetch analysis by id: %s", err.Error()))
+	}
+
+	python_config, ok := analysis.Config["python"].(map[string]interface{})
+	if !ok {
+		panic("Failed to fetch analysis config")
+	}
+
+	projectId := python_config["project"].(string)
+
+	var chat types.Chat
+	err = codeclarityDB.NewSelect().Model(&chat).Where("? = ?", bun.Ident("projectId"), projectId).Scan(context.Background())
+	if err == nil {
+		chat.Messages[0].Result = analysisId.String()
+		_, err = codeclarityDB.NewUpdate().Model(&chat).WherePK().Exec(context.Background())
+		if err != nil {
+			panic(fmt.Sprintf("Failed to add image to chat history: %s", err.Error()))
+		}
+	}
+	out := ExecuteScript(sourceCodeDir, analysisId)
+	chat.Messages[0].Image = out.Result.Image
+	chat.Messages[0].Text = out.Result.Text
+	chat.Messages[0].Data = out.Result.Data
+	_, err = codeclarityDB.NewUpdate().Model(&chat).WherePK().Exec(context.Background())
+	if err != nil {
+		panic(fmt.Sprintf("Failed to add result content to chat history: %s", err.Error()))
+	}
+	return out
 }
 
 func ExecuteScript(sourceCodeDir string, analysisId uuid.UUID) types.Output {
