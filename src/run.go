@@ -73,13 +73,12 @@ func ExecuteScript(sourceCodeDir string, analysisId uuid.UUID) types.Output {
 	if len(files) == 0 {
 		return generate_output(start, "", nil, "", codeclarity.FAILURE, []exceptionManager.Error{})
 	}
-	scanpyOutputPath := path.Join(sourceCodeDir, "scanpy")
 	outputPath := path.Join(sourceCodeDir, "python")
 	dataPath := path.Join(sourceCodeDir, "data")
 	os.MkdirAll(outputPath, os.ModePerm)
 	os.MkdirAll(dataPath, os.ModePerm)
 
-	args := []string{scriptPath, scanpyOutputPath, outputPath}
+	args := []string{scriptPath, outputPath}
 
 	// Run Rscript in sourceCodeDir
 	cmd := exec.Command("python3", args...)
@@ -149,6 +148,9 @@ func ExecuteScript(sourceCodeDir string, analysisId uuid.UUID) types.Output {
 	}
 	var data map[string]interface{}
 	for _, f := range files {
+		if strings.Contains(f, "groups.json") {
+			continue
+		}
 		if strings.HasSuffix(f, ".json") {
 			newName := filepath.Join(dataPath, analysisId.String()+".json")
 			os.Rename(f, newName)

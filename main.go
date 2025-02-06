@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	codeclarity "github.com/CodeClarityCE/utility-types/codeclarity_db"
 	plugin_db "github.com/CodeClarityCE/utility-types/plugin_db"
 	plugin "github.com/parithera/plugin-python/src"
+	"github.com/parithera/plugin-python/src/types"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -86,7 +88,18 @@ func startAnalysis(args Arguments, dispatcherMessage types_amqp.DispatcherPlugin
 	// Destination folder
 	// destination := fmt.Sprintf("%s/%s/%s", path, organization, analysis.Commit)
 	// Prepare the arguments for the plugin
-	project := filepath.Join(path, messageData["user"].(string), messageData["project"].(string))
+	project := filepath.Join(path, dispatcherMessage.OrganizationId.String(), "projects", messageData["project"].(string))
+
+	groups := []types.Group{}
+	data, _ := json.Marshal(messageData["groups"])
+	if err := json.Unmarshal(data, &groups); err != nil {
+		panic(err)
+	}
+
+	err := os.WriteFile(filepath.Join(project, "python", "groups.json"), data, 0644)
+	if err != nil {
+		panic(err)
+	}
 
 	// Start the plugin
 	rOutput := plugin.Start(project, analysis_document.Id, args.codeclarity)
@@ -96,7 +109,7 @@ func startAnalysis(args Arguments, dispatcherMessage types_amqp.DispatcherPlugin
 		AnalysisId: dispatcherMessage.AnalysisId,
 		Plugin:     config.Name,
 	}
-	_, err := args.codeclarity.NewInsert().Model(&result).Exec(context.Background())
+	_, err = args.codeclarity.NewInsert().Model(&result).Exec(context.Background())
 	if err != nil {
 		panic(err)
 	}
