@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -96,9 +97,36 @@ func startAnalysis(args Arguments, dispatcherMessage types_amqp.DispatcherPlugin
 		panic(err)
 	}
 
-	err := os.WriteFile(filepath.Join(project, "python", "groups.json"), data, 0644)
+	err := os.MkdirAll(filepath.Join(project, "python"), 0755)
 	if err != nil {
 		panic(err)
+	}
+	err = os.WriteFile(filepath.Join(project, "python", "groups.json"), data, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	script := messageData["script"].(string)
+	if script != "" {
+		sourceScriptPath := filepath.Join("./scripts", script+".py")
+		destScriptPath := filepath.Join(project, "python", "script.py")
+
+		inputFile, err := os.Open(sourceScriptPath)
+		if err != nil {
+			panic(err)
+		}
+		defer inputFile.Close()
+
+		outputFile, err := os.Create(destScriptPath)
+		if err != nil {
+			panic(err)
+		}
+		defer outputFile.Close()
+
+		_, err = io.Copy(outputFile, inputFile)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	// Start the plugin
