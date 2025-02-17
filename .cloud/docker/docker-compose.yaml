@@ -12,7 +12,7 @@ services:
     volumes:
       - ../../backend:/codeclarity
       - ../../private:/private
-      - ../../scanpy_scripts:/scanpy_scripts
+      - ../../scripts:/scripts
       - ../../backend/plugins/python/tests/fastq:/input
       - ../../backend/plugins/python/tests/output:/output
     depends_on:
