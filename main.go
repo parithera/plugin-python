@@ -108,7 +108,7 @@ func startAnalysis(args Arguments, dispatcherMessage types_amqp.DispatcherPlugin
 
 	script := messageData["script"].(string)
 	if script != "" {
-		sourceScriptPath := filepath.Join("./scripts", script+".py")
+		sourceScriptPath := filepath.Join("/scanpy_scripts", script+".py")
 		destScriptPath := filepath.Join(project, "python", "script.py")
 
 		inputFile, err := os.Open(sourceScriptPath)
