@@ -44,16 +44,16 @@ func Start(sourceCodeDir string, analysisId uuid.UUID, codeclarityDB *bun.DB) ty
 	var chat types.Chat
 	err = codeclarityDB.NewSelect().Model(&chat).Where("? = ?", bun.Ident("projectId"), projectId).Scan(context.Background())
 	if err == nil {
-		chat.Messages[0].Result = analysisId.String()
+		chat.Messages[0].Image = analysisId.String()
 		_, err = codeclarityDB.NewUpdate().Model(&chat).WherePK().Exec(context.Background())
 		if err != nil {
 			panic(fmt.Sprintf("Failed to add image to chat history: %s", err.Error()))
 		}
 	}
 	out := ExecuteScript(sourceCodeDir, analysisId)
-	chat.Messages[0].Image = out.Result.Image
 	chat.Messages[0].Text = out.Result.Text
-	chat.Messages[0].Data = out.Result.Data
+	chat.Messages[0].Image = out.Result.Image
+	chat.Messages[0].JSON = out.Result.Data
 	_, err = codeclarityDB.NewUpdate().Model(&chat).WherePK().Exec(context.Background())
 	if err != nil {
 		panic(fmt.Sprintf("Failed to add result content to chat history: %s", err.Error()))

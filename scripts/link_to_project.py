@@ -56,6 +56,20 @@ if __name__=='__main__':
     sc.tl.pca(adatas_combined)
     sc.pp.neighbors(adatas_combined)
     sc.tl.umap(adatas_combined)
+    
+    # Compute t-SNE
+    sc.tl.tsne(adatas_combined)
+
+    # Using the igraph implementation and a fixed number of iterations can be significantly faster, especially for larger datasets
+    sc.tl.leiden(adatas_combined, flavor="igraph", n_iterations=2)
+
+    for res in [0.02, 0.5, 2.0]:
+        sc.tl.leiden(
+            adatas_combined, key_added=f"leiden_res_{res:4.2f}", resolution=res, flavor="igraph"
+        )
+
+    # Obtain cluster-specific differentially expressed genes
+    sc.tl.rank_genes_groups(adatas_combined, groupby="leiden_res_0.50", method="wilcoxon")
 
     adatas_combined.write_h5ad(
         output_path.replace("python", "out.h5ad"),

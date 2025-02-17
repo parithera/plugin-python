@@ -13,11 +13,14 @@ type Chat struct {
 }
 
 type Message struct {
-	Request   string `json:"request"`
-	Response  string `json:"response"`
-	Image     string `json:"image"`
-	Text      string `json:"text"`
-	Data      any    `json:"data"`
-	Result    string `json:"result"`
-	Timestamp string `json:"timestamp"`
+	Request   string   `json:"request"`
+	Code      string   `json:"code"`
+	Followup  []string `json:"followup"`
+	Text      string   `json:"text"`
+	JSON      any      `json:"json"`
+	Image     string   `json:"image"`
+	Agent     string   `json:"agent"`
+	Error     string   `json:"error"`
+	Status    string   `json:"status"`
+	Timestamp string   `json:"timestamp"`
 }
