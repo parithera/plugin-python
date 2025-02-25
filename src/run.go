@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -154,17 +153,17 @@ func ExecuteScript(sourceCodeDir string, analysisId uuid.UUID) types.Output {
 		if strings.HasSuffix(f, ".json") {
 			newName := filepath.Join(dataPath, analysisId.String()+".json")
 			os.Rename(f, newName)
-			jsonFile, err := os.Open(newName)
-			if err != nil {
-				panic(fmt.Sprintf("Failed to open JSON file: %s", err.Error()))
-			}
-			defer jsonFile.Close()
+			// jsonFile, err := os.Open(newName)
+			// if err != nil {
+			// 	panic(fmt.Sprintf("Failed to open JSON file: %s", err.Error()))
+			// }
+			// defer jsonFile.Close()
 
-			decoder := json.NewDecoder(jsonFile)
-			err = decoder.Decode(&data)
-			if err != nil {
-				panic(fmt.Sprintf("Failed to decode JSON data: %s", err.Error()))
-			}
+			// decoder := json.NewDecoder(jsonFile)
+			// err = decoder.Decode(&data)
+			// if err != nil {
+			// 	panic(fmt.Sprintf("Failed to decode JSON data: %s", err.Error()))
+			// }
 		}
 	}
 
