@@ -8,18 +8,16 @@ import (
 	exceptionManager "github.com/CodeClarityCE/utility-types/exceptions"
 )
 
-// getAnalysisTiming calculates the start time, end time, and elapsed time of the analysis.
-// It takes the start time as a parameter and returns the start time, end time, and elapsed time in seconds.
+// GetAnalysisTiming determines the analysis start time, end time, and duration.
+// It accepts the analysis start time as input and returns the formatted start time, end time, and elapsed time in seconds.
 func GetAnalysisTiming(start time.Time) (string, string, float64) {
 	end := time.Now()
 	elapsed := time.Since(start)
 	return start.Local().String(), end.Local().String(), elapsed.Seconds()
 }
 
-// writeFailureOutput writes the failure output for the analysis.
-// It sets the status of the output to analysis.FAILURE and updates the analysis timing information.
-// It also retrieves and sets the private and public errors from the exception manager.
-// The updated output is then returned.
+// WriteFailureOutput constructs a failure output for the analysis process.
+// It sets the analysis status to 'FAILURE', records the analysis timing details, retrieves any encountered errors, and returns the updated output.
 func WriteFailureOutput(output sbomTypes.Output, start time.Time) sbomTypes.Output {
 	output.AnalysisInfo.Status = codeclarity.FAILURE
 	formattedStart, formattedEnd, delta := GetAnalysisTiming(start)
