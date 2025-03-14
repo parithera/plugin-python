@@ -1,6 +1,5 @@
 services:
   plugin-python:
-    platform: linux/amd64
     build:
       context: ../../backend
       dockerfile: plugins/python/.cloud/docker/Dockerfile
