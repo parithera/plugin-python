@@ -5,7 +5,7 @@ ARG USERNAME=codeclarity
 ARG PLUGINNAME=plugin
 
 # DEV IMAGE
-FROM golang:1.24.0 AS plugin-dev
+FROM golang:1.24.3 AS plugin-dev
 ARG KIND
 ARG PLUGINNAME
 
@@ -19,14 +19,14 @@ ADD ${KIND}/${PLUGINNAME}/requirements.txt .
 RUN pip3 install --no-cache --break-system-packages -r requirements.txt
 
 RUN go install github.com/air-verse/air@latest
-CMD air -c .air.toml
+CMD ["air", "-c", ".air.toml"]
 
 # DEBUG IMAGE
-FROM golang:1.23.0 AS plugin-debug
+FROM golang:1.24.3 AS plugin-debug
 ARG KIND
 ARG PLUGINNAME
-ENV KIND ${KIND}
-ENV PLUGINNAME ${PLUGINNAME}
+ENV KIND=${KIND}
+ENV PLUGINNAME=${PLUGINNAME}
 
 WORKDIR /
 RUN apt update
@@ -40,12 +40,12 @@ RUN pip3 install --no-cache --break-system-packages -r requirements.txt
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 ADD .cloud/docker/config/* /root
 WORKDIR /codeclarity/${KIND}/${PLUGINNAME}
-CMD /go/bin/dlv debug . --headless --listen=:40000 --accept-multiclient
+CMD ["/go/bin/dlv", "debug", ".", "--headless", "--listen=:40000", "--accept-multiclient"]
 # CMD tail -f /dev/null
 
 
 # BUILD IMAGE
-FROM golang:1.23.0 AS plugin-build
+FROM golang:1.24.3 AS plugin-build
 ARG KIND
 ARG PLUGINNAME
 COPY . /codeclarity/${KIND}/${PLUGINNAME}
@@ -57,7 +57,7 @@ RUN apt install -y git
 RUN [ "go", "build", "-o", "plugin" ]
 
 # PRODUCTION IMAGE
-FROM debian:12.9-slim AS plugin
+FROM debian:stable-slim AS plugin
 ARG KIND
 ARG USERNAME
 ARG PLUGINNAME
