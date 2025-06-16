@@ -2,9 +2,9 @@ scanpy[leiden]==1.11.2
 # PyQt6==6.8.1
 scikit-image==0.25.2
 anndata==0.11.4
-h5py==3.13.0
+h5py==3.14.0
 hdf5plugin==5.1.0
-pandas==2.2.3
+pandas==2.3.0
 plotly==6.1.2
 scipy==1.15.3
-igraph==0.11.8
+igraph==0.11.9
