@@ -18,7 +18,7 @@ ADD .cloud/docker/config/* /root
 ADD ${KIND}/${PLUGINNAME}/requirements.txt .
 RUN pip3 install --no-cache --break-system-packages -r requirements.txt
 
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@v1.62.0
 CMD ["air", "-c", ".air.toml"]
 
 # DEBUG IMAGE
